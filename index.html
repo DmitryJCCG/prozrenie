@@ -1,0 +1,123 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Matrix Text Effect</title>
+  <style>
+    body {
+      background-color: black;
+      color: lime;
+      overflow: hidden;
+      margin: 0;
+      font-family: monospace;
+    }
+
+    .matrix {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      perspective: 1000px; /* Для 3D эффекта */
+    }
+
+    .matrix .letter {
+      position: absolute;
+      font-size: 20px;
+      font-weight: bold;
+      opacity: 0;
+      color: rgba(0, 255, 0, 0.8);
+      animation: fall linear infinite;
+      transition: transform 0.3s ease; /* Плавный эффект для разлета */
+    }
+
+    /* Адаптивность для мобильных устройств */
+    @media (max-width: 600px) {
+      .matrix .letter {
+        font-size: 30px; /* Увеличенный размер текста на мобильных устройствах */
+      }
+    }
+
+    @keyframes fall {
+      0% {
+        opacity: 0;
+        transform: translateY(-100vh); /* Начальная точка */
+      }
+      10% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(100vh); /* Конечная точка внизу */
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="matrix" id="matrix-container"></div>
+
+  <script>
+    const text = "ЧИТАЙ ПРОЗРЕНИЕ ИДУЩИХ";
+    const container = document.getElementById('matrix-container');
+    const lettersCount = 1000; // Увеличенное количество падающих букв
+
+    // Функция для создания и анимирования букв
+    function createFallingLetter() {
+      const span = document.createElement("span");
+      span.textContent = text[Math.floor(Math.random() * text.length)];
+      span.classList.add("letter");
+      span.style.left = Math.random() * 100 + "vw"; // Случайное горизонтальное положение
+      span.style.fontSize = Math.random() * 20 + 15 + "px"; // Случайный размер
+      span.style.animationDuration = Math.random() * 5 + 2 + "s"; // Случайная скорость падения
+      span.style.animationDelay = Math.random() * 2 + "s"; // Случайная задержка
+
+      container.appendChild(span);
+
+      // Удаляем буквы, когда анимация завершена
+      span.addEventListener('animationend', () => {
+        container.removeChild(span);
+      });
+    }
+
+    // Создаем много букв
+    for (let i = 0; i < lettersCount; i++) {
+      createFallingLetter();
+    }
+
+    // Постоянно добавляем новые буквы для бесконечного эффекта
+    setInterval(createFallingLetter, 25);
+
+    // Обработчик для разлета букв при наведении мыши
+    function scatterLetters(event) {
+      const letters = document.querySelectorAll('.letter');
+      letters.forEach(letter => {
+        const rect = letter.getBoundingClientRect();
+        const dx = rect.left + rect.width / 2 - event.clientX;
+        const dy = rect.top + rect.height / 2 - event.clientY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Если буква находится в пределах 100px от курсора
+        if (distance < 100) {
+          const angle = Math.atan2(dy, dx);
+          const offsetX = Math.cos(angle) * 100;
+          const offsetY = Math.sin(angle) * 100;
+
+          letter.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+        } else {
+          // Возвращаем буквы в их анимационное состояние, если они далеко от курсора
+          letter.style.transform = '';
+        }
+      });
+    }
+
+    // Добавляем обработчик для движения мыши
+    window.addEventListener('mousemove', scatterLetters);
+
+    // Добавляем обработчик для касания экрана на мобильных устройствах
+    window.addEventListener('touchmove', (event) => {
+      const touch = event.touches[0];
+      scatterLetters({ clientX: touch.clientX, clientY: touch.clientY });
+    });
+  </script>
+</body>
+</html>
